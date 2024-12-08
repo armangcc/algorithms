@@ -2,8 +2,15 @@
 
 
 int initialize_array(int **array, int *size) {
+    if (NULL == array || NULL == size) {
+        return NULL_POINTER_ERROR;
+    }
+
     printf("Enter the length of array: ");
-    scanf("%d", size);
+    int scanf_returns = scanf("%d", size);
+    if (scanf_returns == EOF) {
+        return END_OF_FILE;
+    }
     if (*size <0) {
         printf("Length must be positive.\n");
         *size = 0;
@@ -15,30 +22,45 @@ int initialize_array(int **array, int *size) {
     }
     for (int i = 0; i < *size; i++) {
         printf("Enter element %d (index): ", i + 1);
-        scanf("%d", &(*array)[i]);
+        int scanf_returns = scanf("%d", &(*array)[i]);
+        if (scanf_returns == EOF) {
+            return END_OF_FILE;
+        }
     }
     return SUCCESS;
 }
 
 
 int insert_element(int **array, int *size, int index, int value) {
+    if (NULL == array || NULL == size) {
+        return NULL_POINTER_ERROR;
+    }
     if (index > *size) {
         index = *size; // Вставка в конец массива
     }
-    *array = (int *)realloc(*array, (*size + 1) * sizeof(int));
+
+    int *temp = (int *)realloc(*array, (*size + 1) * sizeof(int));
+    if (temp == NULL) {
+        return NOT_ENOUGH_MEMORY;
+    }
+    *array = temp;
+
     if (*array == NULL) {
         return 1;
     }
     for (int i = *size; i > index; i--) {
         (*array)[i] = (*array)[i - 1];
     }
-    (*array)[index - 1] = value; //?????
+    (*array)[index] = value; //?????
     (*size)++;
     return SUCCESS;
 }
 
 
 int delete_element(int **array, int *size, int index) {
+    if (NULL == array || NULL == size) {
+        return NULL_POINTER_ERROR;
+    }
     if (index < 0 || index >= *size) {
         return  INDEX_IS_OUT_OF_RANGE;
     }
@@ -46,7 +68,13 @@ int delete_element(int **array, int *size, int index) {
         (*array)[i] = (*array)[i + 1];
     }
 
-    *array = (int *)realloc(*array, (*size - 1) * sizeof(int));
+
+    int *temp = (int *)realloc(*array, (*size - 1) * sizeof(int));
+    if (temp == NULL) {
+        return NOT_ENOUGH_MEMORY;
+    }
+    *array = temp;
+
     if (*array == NULL) {
         return NOT_ENOUGH_MEMORY;
     }
@@ -56,6 +84,9 @@ int delete_element(int **array, int *size, int index) {
 
 
 int find_unique_elements(int **array, int *size) {
+    if (NULL == array || NULL == size) {
+        return NULL_POINTER_ERROR;
+    }
     int *temp = (int *)malloc(*size * sizeof(int));
     if (temp == NULL) {
         return  NOT_ENOUGH_MEMORY;
@@ -85,7 +116,10 @@ int find_unique_elements(int **array, int *size) {
     free(temp);
 }
 
- int print_array(int *array, int size) {
+int print_array(int *array, int size) {
+    if (NULL == array) {
+        return NULL_POINTER_ERROR;
+    }
     if (size == 0) {
         printf("Array is empty.\n");
         return 1;
@@ -94,5 +128,5 @@ int find_unique_elements(int **array, int *size) {
     for (int i = 0; i < size; i++) {
         printf("%d ", array[i]);
     }
-     printf("\n");
+    printf("\n");
 }

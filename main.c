@@ -15,13 +15,16 @@ int main() {
         printf("(e) Output array \n");
         printf("(f) Exit\n");
 
-        option = getchar();
-        getchar(); // Для считывания символа новой строки после ввода
+        scanf(" %c", &option);
         switch (option) {
             case 'a': {
                 error = initialize_array(&array, &len);
                 if (NOT_ENOUGH_MEMORY == error) {
                     printf("Memory error.\n");
+                    return EXIT_FAILURE;
+                }
+                if (END_OF_FILE == error){
+                    printf("End of file");
                     return EXIT_FAILURE;
                 }
                 print_array(array, len);
@@ -45,14 +48,28 @@ int main() {
                 int index;
                 printf("Enter index to delete: ");
                 scanf("%d", &index);
+
                 error = delete_element(&array, &len, index);
+                while (INDEX_IS_OUT_OF_RANGE == error) {
+                    printf("Index is out of range! Enter again: ");
+                    scanf("%d", &index);
+                    error = delete_element(&array, &len, index);
+                }
+
                 if (NOT_ENOUGH_MEMORY == error){
                     printf("Memory error.\n");
                     return EXIT_FAILURE;
                 }
                 while (INDEX_IS_OUT_OF_RANGE == error){
                     printf("Index is out of range! Enter again.\n");
+
                     error = delete_element(&array, &len, index);
+                    while (INDEX_IS_OUT_OF_RANGE == error) {
+                        printf("Index is out of range! Enter again: ");
+                        scanf("%d", &index);
+                        error = delete_element(&array, &len, index);
+                    }
+
                 }
                 print_array(array, len);
                 break;
