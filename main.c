@@ -1,5 +1,7 @@
-/*Ошибки: 1) Не знаю как реализовывать ручное управление памятью
-          2) EOF работает только с choose option*/
+/*Errors: 1) I don't know how to implement manual memory management
+2) EOF only works only with "choose option"
+3) You need to output the old array and the new array with unique elements and continue work with the old array*/
+
 
 
 #include "array.h"
