@@ -1,22 +1,31 @@
 #include "array.h"
 
 
-int initialize_array(int **array, int *size) {
+int initialize_array(int **array, int *size, const int capacity) {
+    /*capacity: Memmory measured in ints*/
     if  (NULL == array || NULL == size) {
         return NULL_POINTER_ERROR;
     }
-    printf("Enter the length of the array: ");
-    if (read_int(size, 1, ARRAY_MAX_SIZE) != SUCCESS) {
-        return WRONG_LIMITS_ERROR;
+    printf("Enter the length of the array ");
+    int error = read_int(size, 1, ARRAY_MAX_SIZE);
+    if (error == EOF) {
+        printf("You completed the program");
+        return EOF;
     }
-    *array = calloc(*size, sizeof(int));
+    if (capacity < *size) {
+        return NOT_ENOUGH_MEMORY;
+    }
+    *array = (int *) malloc(sizeof(int) * capacity);
     if (NULL == *array) {
         return NOT_ENOUGH_MEMORY;
     }
     for (int i = 0; i < *size; i++) {
         printf("Enter element %d: ", i + 1);
-        if (scanf("%d", &(*array)[i]) != 1) {
-            return EOF;
+        error = read_int((*array) + i, INT_MIN, INT_MAX);
+        if (SUCCESS != error) {
+            free(*array);
+            *array = NULL;
+            return error;
         }
     }
     return SUCCESS;
@@ -61,7 +70,7 @@ int delete_element(int **array, int *size, int index) {
         *array = NULL;
         return SUCCESS;
     }
-    for (int i = index - 1; i < *size - 1; i++) {
+    for (int i = index; i < *size - 1; i++) {
         (*array)[i] = (*array)[i + 1];
     }
     int *temp = realloc(*array, (*size - 1) * sizeof(int));
@@ -74,32 +83,27 @@ int delete_element(int **array, int *size, int index) {
 }
 
 
-int find_unique_elements(int **array, int *size) {
-    if (array == NULL || size == 0) return NULL_POINTER_ERROR;
-    int *temp = malloc(*size * sizeof(int));
-    if (NULL == temp) return NOT_ENOUGH_MEMORY;
-    int temp_size = 0;
-    for (int i = 0; i < *size; i++) {
-        int count = 0;
-        for (int j = 0; j < *size; j++) {
-            if ((*array)[i] == (*array)[j]) count++;
-        }
-        if (count == 1) {
-            temp[temp_size++] = (*array)[i];
-        }
+int find_unique_elements(const int *array, int size, int **unique_array, int *unique_size) {
+    if (array == NULL || size <= 0 || unique_array == NULL || unique_size == NULL) {
+        return NULL_POINTER_ERROR;
     }
-    free(*array);
-    *array = malloc(temp_size * sizeof(int));
-    if (*array == NULL) {
-        free(temp);
+    *unique_array = malloc(size * sizeof(int));
+    if (*unique_array == NULL) {
         return NOT_ENOUGH_MEMORY;
     }
-
-    for (int i = 0; i < temp_size; i++) {
-        (*array)[i] = temp[i];
+    int temp_size = 0;
+    for (int i = 0; i < size; i++) {
+        int count = 0;
+        for (int j = 0; j < size; j++) {
+            if (array[i] == array[j]) {
+                count++;
+            }
+        }
+        if (count == 1) {
+            (*unique_array)[temp_size++] = array[i];
+        }
     }
-    *size = temp_size;
-    free(temp);
+    *unique_size = temp_size;
     return SUCCESS;
 }
 
@@ -118,31 +122,33 @@ int print_array(int *array, int size) {
     }
     printf("\n");
 }
-int read_int(int *value, const int lower_limit, const int upper_limit){
-    if (NULL == value){
+
+
+int read_int(int *value, const int lower_limit, const int upper_limit) {
+    if (value == NULL) {
         return NULL_POINTER_ERROR;
     }
-    if (lower_limit > upper_limit){
+    if (lower_limit > upper_limit) {
         return WRONG_LIMITS_ERROR;
     }
-    while (true){
-        int scanf_returns = scanf("%d", value);
-        if (scanf_returns == EOF){
-            printf("\nInterrupted by user\n");
+    char buffer[100];
+    while (true) {
+        printf("Enter a number: ");
+        if (fgets(buffer, sizeof(buffer), stdin) == NULL) {
             return EOF;
         }
-        while (getchar() != '\n');
-        if (scanf_returns == 0){
-            printf("Only numbers are allowed!\n");
+        // Проверяем, состоит ли строка только из числа
+        char *endptr;
+        long temp_value = strtol(buffer, &endptr, 10);
+        if (*endptr != '\n' && *endptr != '\0') {
+            printf("Invalid input. Only numbers are allowed! Try again.\n");
+            continue;
         }
-        if (scanf_returns == 1
-            && (*value < lower_limit || *value > upper_limit)){
-            printf("Value is out of range!\n");
-            printf("Enter value in range [%d - %d]\n", lower_limit, upper_limit);
+        if (temp_value < lower_limit || temp_value > upper_limit) {
+            printf("Value is out of range! Enter value in range [%d ; %d]: ", lower_limit, upper_limit);
+            continue;
         }
-        else if (scanf_returns == 1){
-            return SUCCESS;
-        }
-        printf("Try again: ");
+        *value = (int) temp_value;
+        return SUCCESS; // Корректный ввод
     }
 }
